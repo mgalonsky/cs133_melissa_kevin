@@ -25,9 +25,9 @@ public class JoinPredicate implements Serializable {
      * @see Predicate
      */
     
-    int field1;
-    int field2;
-    Predicate.Op op;
+    private int field1;
+    private int field2;
+    private Predicate.Op op;
     
     public JoinPredicate(int field1, Predicate.Op op, int field2) {
         this.field1 = field1;
