@@ -2,6 +2,7 @@ package simpledb;
 
 import java.io.*;
 
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -68,7 +69,15 @@ public class BufferPool {
                     throw new DbException("Out of buffer pages");
                 }
                 
-                p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+                try {
+					p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+				} catch (NoSuchElementException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
                 pages.put(pid, p);
             }
         }
