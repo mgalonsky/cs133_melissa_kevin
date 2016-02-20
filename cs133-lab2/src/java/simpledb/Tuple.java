@@ -1,12 +1,8 @@
-// Authors: Kevin Heath & Melissa Galonsky
-
 package simpledb;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
-
-import simpledb.TupleDesc.TDItem;
 
 /**
  * Tuple maintains information about the contents of a tuple. Tuples have a
@@ -17,6 +13,10 @@ public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private transient RecordId rid; // source on disk -- may be null
+    private Field fields[];
+    private transient TupleDesc td;
+
     /**
      * Create a new tuple with the specified schema (type).
      * 
@@ -24,22 +24,17 @@ public class Tuple implements Serializable {
      *            the schema of this tuple. It must be a valid TupleDesc
      *            instance with at least one field.
      */
-    
-    private Field[] fields;
-    private TupleDesc tupleD;
-    private RecordId record;
-    
-    
     public Tuple(TupleDesc td) {
-        this.fields = new Field[td.numFields()];
-        this.tupleD = td;
+        fields = new Field[td.numFields()];
+        this.td = td;
     }
 
     /**
      * @return The TupleDesc representing the schema of this tuple.
      */
     public TupleDesc getTupleDesc() {
-        return this.tupleD;
+        return td;
+
     }
 
     /**
@@ -47,7 +42,8 @@ public class Tuple implements Serializable {
      *         be null.
      */
     public RecordId getRecordId() {
-        return record;
+        return rid;
+
     }
 
     /**
@@ -57,7 +53,7 @@ public class Tuple implements Serializable {
      *            the new RecordId for this tuple.
      */
     public void setRecordId(RecordId rid) {
-        this.record = rid;
+        this.rid = rid;
     }
 
     /**
@@ -69,7 +65,9 @@ public class Tuple implements Serializable {
      *            new value for the field.
      */
     public void setField(int i, Field f) {
-    	//SHOULD WE ERROR CHECK?
+        if (f.getType() != td.getFieldType(i)) {
+            throw new RuntimeException("Invalid field type in Tuple.setField()");
+        }
         fields[i] = f;
     }
 
@@ -81,6 +79,7 @@ public class Tuple implements Serializable {
      */
     public Field getField(int i) {
         return fields[i];
+
     }
 
     /**
@@ -92,14 +91,16 @@ public class Tuple implements Serializable {
      * where \t is any whitespace, except newline, and \n is a newline
      */
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        Iterator<Field> iter = fields();
-        while (iter.hasNext()) {
-        	builder.append(iter.next());
+        String out = "";
+        for (int i = 0; i < fields.length; i++) {
+            if (out.length() > 0)
+                out += "\t";
+            out += fields[i];
         }
-        return builder.toString();
-        
+        return out;
+
     }
+    
     
     /**
      * @return
@@ -107,30 +108,15 @@ public class Tuple implements Serializable {
      * */
     public Iterator<Field> fields()
     {
-    	Iterator<Field> iter = new Iterator<Field>() {
+        return Arrays.asList(fields).iterator();
 
-    		private int currentIndex = 0;
-
-    		public boolean hasNext() {
-    			return this.currentIndex < fields.length;
-    		}
-
-    		public Field next() {
-
-    			return fields[currentIndex++];
-    		}
-
-    	};
-
-    	return iter;
     }
     
     /**
-     * Reset the TupleDesc of this tuple
-     * Does not need to worry about the fields inside the Tuple
+     * reset the TupleDesc of thi tuple
      * */
     public void resetTupleDesc(TupleDesc td)
     {
-    	this.tupleD = td;
+        this.td = td;
     }
 }

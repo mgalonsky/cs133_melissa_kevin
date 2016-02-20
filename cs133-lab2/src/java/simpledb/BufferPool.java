@@ -1,11 +1,7 @@
-// Authors: Kevin Heath & Melissa Galonsky
-
 package simpledb;
 
 import java.io.*;
 
-import java.util.Hashtable;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,42 +19,27 @@ public class BufferPool {
     /** Bytes per page, including header. */
     public static final int PAGE_SIZE = 4096;
 
-    private static int pageSize = PAGE_SIZE;
-
     /** Default number of pages passed to the constructor. This is used by
     other classes. BufferPool should use the numPages argument to the
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
-
-    /** TODO for Lab 4: create your private Lock Manager class. 
-	Be sure to instantiate it in the constructor. */
-
     
-    //private Page[] pool;
-    private Hashtable<PageId, Page> deadPool;
-    private int numPages = DEFAULT_PAGES;
-    
+    final int numPages;   // number of pages -- currently, not enforced
+    final ConcurrentHashMap<PageId,Page> pages; // hash table storing current pages in memory
+
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // = new Page[50];
-    	this.deadPool = new Hashtable<PageId, Page>(numPages);
+        // some code goes here
     	this.numPages = numPages;
-    	
+        this.pages = new ConcurrentHashMap<PageId, Page>();
     }
     
     public static int getPageSize() {
-      return pageSize;
-    }
-
-    /**
-     * Helper: this should be used for testing only!!!
-     */
-    public static void setPageSize(int pageSize) {
-	BufferPool.pageSize = pageSize;
+      return PAGE_SIZE;
     }
 
     /**
@@ -75,26 +56,23 @@ public class BufferPool {
      * @param tid the ID of the transaction requesting the page
      * @param pid the ID of the requested page
      * @param perm the requested permissions on the page
-     * @throws IOException 
-     * @throws NoSuchElementException 
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
-        throws TransactionAbortedException, DbException, NoSuchElementException, IOException {
-        
-//    	if (!holdsLock(tid, pid)) {
-//    		throw new TransactionAbortedException();
-//    	}
-    	
-    	if(this.deadPool.containsKey(pid)){
-    		return this.deadPool.get(pid);	
-    	} else {
-    		if (this.deadPool.size() >= this.numPages) {
-    			throw new DbException("Too many pages!");
-    		} else {
-    			this.deadPool.put(pid, Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid));
-    			return this.deadPool.get(pid);
-    		}
-    	}
+        throws TransactionAbortedException, DbException {
+        // some code goes here
+    	Page p;
+        synchronized(this) {
+            p = pages.get(pid);
+            if(p == null) {
+                if(pages.size() >= numPages) {
+                    throw new DbException("Out of buffer pages");
+                }
+                
+                p = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+                pages.put(pid, p);
+            }
+        }
+        return p;
     }
 
     /**
@@ -197,7 +175,7 @@ public class BufferPool {
     */
     public synchronized void discardPage(PageId pid) {
         // some code goes here
-        // not necessary for labs 1--4
+        // only necessary for lab5
     }
 
     /**
@@ -213,7 +191,7 @@ public class BufferPool {
      */
     public synchronized  void flushPages(TransactionId tid) throws IOException {
         // some code goes here
-        // not necessary for labs 1--4
+        // not necessary for lab1|lab2
     }
 
     /**

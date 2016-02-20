@@ -3,6 +3,9 @@ package simpledb;
 /** Unique identifier for HeapPage objects. */
 public class HeapPageId implements PageId {
 
+    private final int tableId;
+    private final int pgNo;
+	
     /**
      * Constructor. Create a page id structure for a specific page of a
      * specific table.
@@ -10,16 +13,16 @@ public class HeapPageId implements PageId {
      * @param tableId The table that is being referenced
      * @param pgNo The page number in that table.
      */
-    private int tabId;
-    private int pageNum;
     public HeapPageId(int tableId, int pgNo) {
-        tabId = tableId;
-        pageNum = pgNo;
+        // some code goes here
+        this.tableId = tableId;
+        this.pgNo = pgNo;
     }
 
     /** @return the table associated with this PageId */
     public int getTableId() {
-        return tabId;
+        // some code goes here
+    	return tableId;
     }
 
     /**
@@ -27,7 +30,8 @@ public class HeapPageId implements PageId {
      *   this PageId
      */
     public int pageNumber() {
-        return pageNum;
+        // some code goes here
+    	return pgNo;
     }
 
     /**
@@ -37,8 +41,9 @@ public class HeapPageId implements PageId {
      * @see BufferPool
      */
     public int hashCode() {
-        int lengthOfPgNm = (int) Math.floor(Math.log10(pageNum) + 1);
-        return (int) (pageNum + Math.pow(10, lengthOfPgNm) * tabId);
+        // some code goes here
+        int code = (tableId << 16) + pgNo;
+        return code;
     }
 
     /**
@@ -49,11 +54,11 @@ public class HeapPageId implements PageId {
      *   ids are the same)
      */
     public boolean equals(Object o) {
-    	if (o instanceof PageId) {
-    		PageId p = (PageId) o;
-    		return ( pageNum == p.pageNumber() && tabId == p.getTableId());
-    	}
-    	return false;
+        // some code goes here
+        if (!(o instanceof HeapPageId))
+            return false;
+        HeapPageId p = (HeapPageId)o;
+        return tableId == p.tableId && pgNo == p.pgNo;
     }
 
     /**

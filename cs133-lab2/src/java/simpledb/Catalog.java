@@ -1,8 +1,7 @@
-// Authors: Kevin Heath & Melissa Galonsky
-
 package simpledb;
 
 import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -20,45 +19,50 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Catalog {
 
+    private final Map<Integer, DbFile> id2table;
+    private final Map<Integer, TupleDesc> id2tupledesc;
+    private final Map<String, Integer> name2id;
+    private final Map<Integer, String> id2name;
+    private final Map<Integer, String> pkey;
+	
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
-	
-	private Hashtable<Integer, DbFile> idDict;
-	private Hashtable<String, DbFile> nameDict;
-	private HashMap<Integer, String> idNameDict;
-	private HashMap<Integer, String> pKeyDict;
-	
     public Catalog() {
-        idDict = new Hashtable<Integer, DbFile>();
-        nameDict = new Hashtable<String, DbFile>();
-        pKeyDict = new HashMap<Integer, String>();
-        idNameDict = new HashMap<Integer, String>();
+        // some code goes here
+    	
+        id2table = new ConcurrentHashMap<Integer, DbFile>();
+        id2tupledesc = new ConcurrentHashMap<Integer, TupleDesc>();
+        name2id = new ConcurrentHashMap<String,Integer>();
+        id2name = new ConcurrentHashMap<Integer,String>();
+        pkey = new ConcurrentHashMap<Integer,String>();
+    	
     }
 
     /**
      * Add a new table to the catalog.
      * This table's contents are stored in the specified DbFile.
-     * @param file the contents of the table to add;  file.getId() is the identifier of
+     * @param file the contents of the table to add;  file.getId() is the identfier of
      *    this file/tupledesc param for the calls getTupleDesc and getFile
      * @param name the name of the table -- may be an empty string.  May not be null.  If a name
-     * conflict exists, use the last table to be added as the table for a given name. - Actually
-     * means: "Update file with new name bruh"
      * @param pkeyField the name of the primary key field
+     * conflict exists, use the last table to be added as the table for a given name.
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-    	
-    	// If file is already in the hashtable, change the name for the same file
-    	if(this.idNameDict.containsKey(file.getId())) {
-    		this.nameDict.remove(name);
-    		
-    	}
-    	
-        this.idDict.put(file.getId(), file);
-        this.nameDict.put(name, file);
-        this.pKeyDict.put(file.getId(), pkeyField);
-        this.idNameDict.put(file.getId(), name);
+        // some code goes here
+		if (name2id.containsKey(name)) {
+			id2table.remove( name2id.get(name) );
+			id2tupledesc.remove( name2id.get(name) );
+			name2id.remove(name);
+		}
+		
+        id2tupledesc.put(file.getId(), file.getTupleDesc());
+        id2table.put(file.getId(), file);
+        name2id.put(name, file.getId());
+        id2name.put(file.getId(), name);
+
+        pkey.put(file.getId(), pkeyField);
     }
 
     public void addTable(DbFile file, String name) {
@@ -69,7 +73,7 @@ public class Catalog {
      * Add a new table to the catalog.
      * This table has tuples formatted using the specified TupleDesc and its
      * contents are stored in the specified DbFile.
-     * @param file the contents of the table to add;  file.getId() is the identifier of
+     * @param file the contents of the table to add;  file.getId() is the identfier of
      *    this file/tupledesc param for the calls getTupleDesc and getFile
      */
     public void addTable(DbFile file) {
@@ -81,18 +85,14 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) throws NoSuchElementException {
-    	System.out.println(name);
-    	Iterator<String> iter = nameDict.keySet().iterator();
-    	while(iter.hasNext()) {
-    		System.out.println(iter.next());
-    	}
-    	
-//    	System.out.println(nameDict.keySet().iterator());
-    	if (!(name == null) && nameDict.containsKey(name)){
-    		return nameDict.get(name).getId();
-    	} else {
-    		throw new NoSuchElementException();
-    	}
+        // some code goes here
+        if (name==null)
+            throw new NoSuchElementException();
+        if (name2id.get(name) == null) {
+        	throw new NoSuchElementException();
+        }
+
+        return name2id.get(name).intValue();
     }
 
     /**
@@ -102,7 +102,8 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        return idDict.get(tableid).getTupleDesc();
+        // some code goes here
+    	return id2tupledesc.get(new Integer(tableid));
     }
 
     /**
@@ -112,41 +113,33 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
-        return idDict.get(tableid);
+        // some code goes here
+    	return id2table.get(tableid);
     }
 
     public String getPrimaryKey(int tableid) {
-        return pKeyDict.get(tableid);
+        // some code goes here
+    	return pkey.get(tableid);
     }
 
     public Iterator<Integer> tableIdIterator() {
-    	Iterator<Integer> iter = new Iterator<Integer>() {
-
-    		private int currentIndex = 0;
-    		private Enumeration<Integer> internalIter = idDict.keys();
-
-    		public boolean hasNext() {
-    			return internalIter.hasMoreElements();
-    		}
-
-    		public Integer next() {
-    			return internalIter.nextElement();
-    		}
-    	};
-
-    	return iter;
+        // some code goes here
+    	return id2table.keySet().iterator();
     }
 
     public String getTableName(int id) {
-        return idNameDict.get(id);
+        // some code goes here
+    	return id2name.get(id);
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
-        idDict.clear();
-        nameDict.clear();
-        idNameDict.clear();
-        pKeyDict.clear();
+        // some code goes here
+        id2table.clear();
+        id2tupledesc.clear();
+        name2id.clear();
+        id2name.clear();
+        pkey.clear();
     }
     
     /**

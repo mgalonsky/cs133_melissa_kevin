@@ -9,6 +9,9 @@ import java.io.Serializable;
 public class RecordId implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    
+    private final PageId pid;
+    private final int tupleno;
 
     /**
      * Creates a new RecordId referring to the specified PageId and tuple
@@ -19,27 +22,26 @@ public class RecordId implements Serializable {
      * @param tupleno
      *            the tuple number within the page.
      */
-    
-    private PageId pageId;
-    private int tupleNum;
-    
     public RecordId(PageId pid, int tupleno) {
-        this.pageId = pid;
-        this.tupleNum = tupleno;
+        // some code goes here
+        this.pid = pid;
+        this.tupleno = tupleno;
     }
 
     /**
      * @return the tuple number this RecordId references.
      */
     public int tupleno() {
-        return this.tupleNum;
+        // some code goes here
+    	return tupleno;
     }
 
     /**
      * @return the page id this RecordId references.
      */
     public PageId getPageId() {
-        return this.pageId;
+        // some code goes here
+    	return pid;
     }
 
     /**
@@ -50,9 +52,12 @@ public class RecordId implements Serializable {
      */
     @Override
     public boolean equals(Object o) {
-        RecordId oRecord = (RecordId) o;
-        return (this.pageId.equals(oRecord.pageId) && this.tupleNum == oRecord.tupleno());
-        
+        // some code goes here
+    	 if (o != null && o instanceof RecordId) {
+             RecordId rid = (RecordId) o;
+             return pid.equals(rid.pid) && tupleno == rid.tupleno;
+         }
+         return false;
     }
 
     /**
@@ -63,9 +68,9 @@ public class RecordId implements Serializable {
      */
     @Override
     public int hashCode() {
-    	
-    	int lengthOfTupleNm = (int) Math.floor(Math.log10(this.tupleNum) + 1);
-        return (int) (this.pageId.hashCode() * Math.pow(10, lengthOfTupleNm) + this.tupleNum);
+        // some code goes here
+    	return tupleno << 16 + pid.hashCode();
+
     }
 
 }
