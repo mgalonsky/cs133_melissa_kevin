@@ -99,26 +99,32 @@ public class Join extends Operator {
      * @return The next matching tuple.
      * @see JoinPredicate#filter
      */
+    private Tuple currentChild;
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-        while(child1.hasNext()) {
-        	Tuple nextChild1 = child1.next();
+        while(true) {
+        	if(currentChild == null || !child2.hasNext()) {
+        		if(!child1.hasNext()) {
+        			return null;
+        		}
+        		currentChild = child1.next();
+        		child2.rewind();
+        	}
         	while (child2.hasNext()) {
         		Tuple nextChild2 = child2.next();
-        		if (p.filter(nextChild1, nextChild2)) {
-        			TupleDesc newTDesc = TupleDesc.merge(nextChild1.getTupleDesc(), nextChild2.getTupleDesc());
+        		if (p.filter(currentChild, nextChild2)) {
+        			TupleDesc newTDesc = TupleDesc.merge(currentChild.getTupleDesc(), nextChild2.getTupleDesc());
         			Tuple newTuple = new Tuple(newTDesc);
         			for (int i = 0; i<newTDesc.numFields(); i++) {
-        				if (i < nextChild1.getTupleDesc().numFields()) {
-        					newTuple.setField(i, nextChild1.getField(i));
+        				if (i < currentChild.getTupleDesc().numFields()) {
+        					newTuple.setField(i, currentChild.getField(i));
         				} else {
-        					newTuple.setField(i, nextChild2.getField(i-nextChild1.getTupleDesc().numFields()));
+        					newTuple.setField(i, nextChild2.getField(i-currentChild.getTupleDesc().numFields()));
         				}
         			}
         			return newTuple;
         		}
         	}
         }
-        return null;
     }
 
     /**
