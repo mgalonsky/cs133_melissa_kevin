@@ -3,6 +3,7 @@ package simpledb;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Computes some aggregate over a set of IntFields.
@@ -31,12 +32,15 @@ public class IntegerAggregator implements Aggregator {
     private Type gbfieldtype;
     private int field;
     private Op what;
+    private boolean isSingleAgg;
    
     
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
     	
     	if(gbfield == NO_GROUPING || gbfieldtype == null){
-    		
+    		isSingleAgg = true;
+    	} else {
+    		isSingleAgg = false;
     	}
     	
         this.gbfield = gbfield;
@@ -131,9 +135,6 @@ public class IntegerAggregator implements Aggregator {
      *         the constructor.
      */
     public DbIterator iterator() {
-        // some code goes here
-    	// Create array of tuples from hashmap, and return 
-    	
     	Tuple[] tuples = new Tuple[groups.size()];
     	
     	Type[] gbtype = new Type[2];
@@ -171,13 +172,82 @@ public class IntegerAggregator implements Aggregator {
     		
     	}
     	
-    	return Arrays.asList(tuples).iterator();
-    	
-    	
-    
-    	
-        throw new
-        UnsupportedOperationException("please implement me for lab2");
+    	class IntAggIter implements DbIterator {
+    		private boolean open;
+    		private TupleDesc desc;
+    		private HashMap<Field, Integer[]> groups;
+    		private int currentLoc;
+    		private Iterator<Field> keyIter;
+    		private Op op;
+    		
+    		IntAggIter(HashMap<Field, Integer[]> groups, Type gbFieldType, Op op) {
+    			this.groups = groups;
+    			open = false;
+    			currentLoc = 0;
+    			Type[] ty = new Type[2];
+    			ty[0] = gbFieldType;
+    			ty[1] = Type.INT_TYPE;
+    			desc = new TupleDesc(ty);
+    			keyIter = this.groups.keySet().iterator();
+    			this.op = op;
+    		}
+
+			@Override
+			public void open() throws DbException, TransactionAbortedException {
+				open = true;	
+			}
+
+			@Override
+			public boolean hasNext() throws DbException,
+					TransactionAbortedException {
+				if (!open) {
+					throw new TransactionAbortedException();
+				}
+				return keyIter.hasNext();
+			}
+
+			@Override
+			public Tuple next() throws DbException,
+					TransactionAbortedException, NoSuchElementException {
+				if (!open) {
+					throw new NoSuchElementException();
+				}
+				Tuple tup = new Tuple(desc);
+				Field nextKey = keyIter.next();
+				tup.setField(0, nextKey);
+				switch (op) {
+				case AVG:
+					tup.setField(1, new IntField(groups.get(nextKey)[0]/groups.get(nextKey)[1]));
+					break;
+				case COUNT:
+					tup.setField(1,  new IntField(groups.get(nextKey)[1]));
+					break;
+				default:
+					tup.setField(1, new IntField(groups.get(nextKey)[0]));
+				}
+				return tup;
+			}
+
+			@Override
+			public void rewind() throws DbException,
+					TransactionAbortedException {
+				if (!open) {
+					throw new TransactionAbortedException();
+				}
+				keyIter = this.groups.keySet().iterator();
+			}
+
+			@Override
+			public TupleDesc getTupleDesc() {
+				return desc;
+			}
+
+			@Override
+			public void close() {
+				open = false;
+			}
+    		
+    	}
     }
     
     
