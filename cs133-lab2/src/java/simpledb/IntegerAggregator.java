@@ -1,6 +1,7 @@
 package simpledb;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Computes some aggregate over a set of IntFields.
@@ -29,7 +30,7 @@ public class IntegerAggregator implements Aggregator {
     private Type gbfieldtype;
     private int field;
     private Op what;
-    private Aggregator agg;
+   
     
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
         this.gbfield = gbfield;
@@ -125,8 +126,47 @@ public class IntegerAggregator implements Aggregator {
      */
     public DbIterator iterator() {
         // some code goes here
+    	// Create array of tuples from hashmap, and return 
+    	
+    	
+    	Type[] gbtype = new Type[2];
+    	gbtype[0] = gbfieldtype;
+    	gbtype[1] = Type.INT_TYPE;
+    	
+    	
+    	TupleDesc desc = new TupleDesc(gbtype);
+    	
+    	Iterator<Field> iter = this.groups.keySet().iterator();
+    	
+    	while(iter.hasNext()) {
+    		Field nextField = iter.next();
+    		Tuple tup = new Tuple(desc);
+    		
+    		tup.setField(0, nextField);
+    		Integer[] vals = groups.get(nextField);
+    		
+    		
+    		if(what==Op.MIN){
+    			tup.setField(1, new IntField(vals[0]));
+        	} else if(what==Op.MAX) {
+        		tup.setField(1, new IntField(vals[0]));
+        	} else if(what==Op.SUM) {
+        		tup.setField(1, new IntField(vals[0]));
+        	} else if(what==Op.AVG) {
+        		tup.setField(1, new IntField(vals[0]/vals[1]));
+        	} else if(what==Op.COUNT){
+        		tup.setField(1, new IntField(vals[1]));
+        	}
+    		
+    		
+    	}
+    	
+    	
+    
+    	
         throw new
         UnsupportedOperationException("please implement me for lab2");
     }
-
+    
+    
 }
