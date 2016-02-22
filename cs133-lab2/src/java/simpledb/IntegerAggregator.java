@@ -1,5 +1,6 @@
 package simpledb;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -33,6 +34,11 @@ public class IntegerAggregator implements Aggregator {
    
     
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
+    	
+    	if(gbfield == NO_GROUPING || gbfieldtype == null){
+    		
+    	}
+    	
         this.gbfield = gbfield;
         this.gbfieldtype = gbfieldtype;
         this.field = afield;
@@ -128,16 +134,19 @@ public class IntegerAggregator implements Aggregator {
         // some code goes here
     	// Create array of tuples from hashmap, and return 
     	
+    	Tuple[] tuples = new Tuple[groups.size()];
     	
     	Type[] gbtype = new Type[2];
     	gbtype[0] = gbfieldtype;
     	gbtype[1] = Type.INT_TYPE;
     	
     	
+    	
     	TupleDesc desc = new TupleDesc(gbtype);
     	
     	Iterator<Field> iter = this.groups.keySet().iterator();
     	
+    	int i = 0;
     	while(iter.hasNext()) {
     		Field nextField = iter.next();
     		Tuple tup = new Tuple(desc);
@@ -157,9 +166,12 @@ public class IntegerAggregator implements Aggregator {
         	} else if(what==Op.COUNT){
         		tup.setField(1, new IntField(vals[1]));
         	}
-    		
+    		tuples[i] = tup;
+    		i+=1;
     		
     	}
+    	
+    	return Arrays.asList(tuples).iterator();
     	
     	
     
