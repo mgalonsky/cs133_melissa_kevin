@@ -68,6 +68,10 @@ public class IntegerAggregator implements Aggregator {
     	runningAggregate = 0;
     	count = 0;
     	
+    	System.out.println("gbfield is:");
+    	System.out.println(gbfield);
+    	System.out.println(tup.getField(gbfield));
+    	
     	if(gbfield != NO_GROUPING && groups.containsKey(tup.getField(gbfield))){
     		runningAggregate = groups.get(tup.getField(gbfield))[0];
     		count =  groups.get(tup.getField(gbfield))[1];
