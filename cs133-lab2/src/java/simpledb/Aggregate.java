@@ -50,6 +50,18 @@ public class Aggregate extends Operator {
     	} else {
     		this.agg = new StringAggregator(gfield, child.getTupleDesc().getFieldType(gfield), afield, aop);
     	}
+    	try {
+			while(child.hasNext()){
+				this.agg.mergeTupleIntoGroup(child.next());
+			}
+		} catch (DbException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransactionAbortedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
     }
 
     /**
@@ -126,7 +138,7 @@ public class Aggregate extends Operator {
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
     	if(this.aggIterator.hasNext()){
     		Tuple next = this.aggIterator.next();
-    		System.out.println(next.toString());
+    		//System.out.println(next.toString());
     		return next;
     	} else{
     		return null;
