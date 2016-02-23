@@ -61,7 +61,7 @@ public class Aggregate extends Operator {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	
+		this.aggIterator = agg.iterator();
     }
 
     /**
@@ -118,7 +118,6 @@ public class Aggregate extends Operator {
 
     public void open() throws NoSuchElementException, DbException,
 	    TransactionAbortedException {
-		this.aggIterator = agg.iterator();
 		super.open();
 		this.aggIterator.open();
 		this.isOpen = true;
