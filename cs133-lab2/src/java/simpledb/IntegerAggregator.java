@@ -62,21 +62,13 @@ public class IntegerAggregator implements Aggregator {
      */
     
     private HashMap<Field, Integer[]> groups;
-    private int runningAggregate;
+    private Integer runningAggregate;
     private int count;
     
     public void mergeTupleIntoGroup(Tuple tup) {
         // some code goes here
-    	runningAggregate = 0;
+    	runningAggregate = null;
     	count = 0;
-    	
-    	System.out.println("Tuple is:");
-    	System.out.println(tup.toString());
-    	System.out.println(tup instanceof Tuple);
-    	System.out.println("gbfield is:");
-    	System.out.println(gbfield);
-    	System.out.println(tup.getField(gbfield));
-    	System.out.println(tup.getField(gbfield) instanceof Field);
     	
     	if(gbfield != NO_GROUPING && 
     			groups.containsKey(tup.getField(gbfield))){
@@ -122,13 +114,13 @@ public class IntegerAggregator implements Aggregator {
     
     
     private void mergeMin(int val){
-    	if(val < runningAggregate) {
+    	if(runningAggregate==null || val < runningAggregate) {
     		runningAggregate = val;
     	}
     	count+=1;
     }
     private void mergeMax(int val) {
-    	if(val > runningAggregate){
+    	if(runningAggregate==null || val > runningAggregate){
     		runningAggregate = val;
     	}
     	count+=1;
