@@ -141,6 +141,7 @@ public class TestUtil {
                     matched = true;
                     break;
                 }
+                System.out.print(next.toString());
             }
 
             if (!matched) {
