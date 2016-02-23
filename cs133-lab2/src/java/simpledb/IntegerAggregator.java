@@ -48,6 +48,8 @@ public class IntegerAggregator implements Aggregator {
         this.gbfieldtype = gbfieldtype;
         this.field = afield;
         this.what = what;
+        
+        groups = new HashMap<Field, Integer[]>();
     	
     }
 
