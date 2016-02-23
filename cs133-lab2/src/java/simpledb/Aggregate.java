@@ -105,6 +105,7 @@ public class Aggregate extends Operator {
     public void open() throws NoSuchElementException, DbException,
 	    TransactionAbortedException {
 		this.aggIterator = agg.iterator();
+		super.open();
 		this.aggIterator.open();
     }
 
@@ -143,6 +144,7 @@ public class Aggregate extends Operator {
     }
 
     public void close() {
+    	super.close();
 		this.aggIterator.close();
     }
 
