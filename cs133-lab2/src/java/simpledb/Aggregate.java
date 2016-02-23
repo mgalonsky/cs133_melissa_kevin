@@ -17,6 +17,7 @@ public class Aggregate extends Operator {
     private Aggregator.Op aop;
     private Aggregator agg;
     private DbIterator aggIterator;
+    private boolean isOpen;
     
     /**
      * Constructor.
@@ -42,6 +43,7 @@ public class Aggregate extends Operator {
     	this.gfield = gfield;
     	this.aop = aop;
     	this.aggIterator = null;
+    	this.isOpen = false;
     	
     	if(child.getTupleDesc().getFieldType(afield) == Type.INT_TYPE ) {
     		this.agg = new IntegerAggregator(gfield, child.getTupleDesc().getFieldType(gfield), afield, aop);
@@ -107,6 +109,7 @@ public class Aggregate extends Operator {
 		this.aggIterator = agg.iterator();
 		super.open();
 		this.aggIterator.open();
+		this.isOpen = true;
     }
 
     /**
@@ -121,7 +124,7 @@ public class Aggregate extends Operator {
      * Hint: notice that you each Aggregator class has an iterator() method
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-    	if(this.aggIterator.hasNext()) {
+    	if(this.aggIterator.hasNext() && this.isOpen) {
     		return this.aggIterator.next();
     	} else {
     		return null;
@@ -129,7 +132,11 @@ public class Aggregate extends Operator {
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
-		this.aggIterator.rewind();
+    	if(!isOpen) {
+    		throw new TransactionAbortedException();
+    	} else {
+    		this.aggIterator.rewind();
+    	}
     }
 
     /**
@@ -148,8 +155,10 @@ public class Aggregate extends Operator {
     }
 
     public void close() {
-    	super.close();
-		this.aggIterator.close();
+    	if(isOpen) {
+    		super.close();
+    		this.aggIterator.close();
+    	}
     }
 
     /**
