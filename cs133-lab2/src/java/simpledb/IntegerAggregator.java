@@ -68,6 +68,8 @@ public class IntegerAggregator implements Aggregator {
     	runningAggregate = 0;
     	count = 0;
     	
+    	System.out.println("Tuple is:");
+    	System.out.println(tup.toString());
     	System.out.println("gbfield is:");
     	System.out.println(gbfield);
     	System.out.println(tup.getField(gbfield));
