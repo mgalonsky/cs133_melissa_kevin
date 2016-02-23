@@ -124,9 +124,13 @@ public class Aggregate extends Operator {
      * Hint: notice that you each Aggregator class has an iterator() method
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-   		Tuple next = this.aggIterator.next();
-    	System.out.println(next.toString());
-    	return next;
+    	if(this.aggIterator.hasNext()){
+    		Tuple next = this.aggIterator.next();
+    		System.out.println(next.toString());
+    		return next;
+    	} else{
+    		return null;
+    	}
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
