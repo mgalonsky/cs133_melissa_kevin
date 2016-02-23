@@ -68,6 +68,7 @@ public class IntegerAggregatorTest extends SimpleDbTestBase {
    */
   @Test public void mergeSum() throws Exception {
     scan1.open();
+    System.out.println(scan1.toString());
     IntegerAggregator agg = new IntegerAggregator(0, Type.INT_TYPE, 1, Aggregator.Op.SUM);
     
     for (int[] step : sum) {
