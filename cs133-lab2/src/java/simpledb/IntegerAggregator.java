@@ -1,5 +1,6 @@
 package simpledb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -67,10 +68,13 @@ public class IntegerAggregator implements Aggregator {
     	runningAggregate = 0;
     	count = 0;
     	
-    	if(groups.containsKey(tup.getField(gbfield))){
+    	if(gbfield != NO_GROUPING && groups.containsKey(tup.getField(gbfield))){
     		runningAggregate = groups.get(tup.getField(gbfield))[0];
     		count =  groups.get(tup.getField(gbfield))[1];
-    	} 
+    	} else if (groups.containsKey(null)) {
+    		runningAggregate = groups.get(null)[0];
+    		count =  groups.get(null)[1];
+    	}
     	
     	int newVal = 0;
     	Field newFieldVal = tup.getField(field);
@@ -94,7 +98,12 @@ public class IntegerAggregator implements Aggregator {
     	vals[0] = runningAggregate;
     	vals[1] = count;
     	
-    	groups.put(tup.getField(gbfield), vals);    	
+    	if (gbfield != NO_GROUPING) {
+    		groups.put(tup.getField(gbfield), vals);    
+    	} else {
+    		groups.put(null, vals);    
+    	}
+    		
     	
     }
     
@@ -135,7 +144,28 @@ public class IntegerAggregator implements Aggregator {
      *         the constructor.
      */
     public DbIterator iterator() {
-    	Tuple[] tuples = new Tuple[groups.size()];
+    	ArrayList<Tuple> tuples = new ArrayList<Tuple>();
+    	
+    	if (gbfield == NO_GROUPING) {
+    		Type[] type = new Type[1];
+    		type[0] = Type.INT_TYPE;
+    		TupleDesc desc = new TupleDesc(type);
+    		Tuple tuple = new Tuple(desc);
+    		Integer[] vals = groups.get(null);
+    		switch(what) {
+    		case AVG:
+    			tuple.setField(0, new IntField(vals[0]/vals[1]));
+    			break;
+    		case COUNT:
+    			tuple.setField(0,  new IntField(vals[1]));
+    			break;
+    		default:
+    			tuple.setField(0,  new IntField(vals[0]));
+    		}
+    		tuples.add(tuple);
+    		TupleIterator iterToRet = new TupleIterator(desc, tuples);
+        	return iterToRet;
+    	}
     	
     	Type[] gbtype = new Type[2];
     	gbtype[0] = gbfieldtype;
@@ -167,88 +197,11 @@ public class IntegerAggregator implements Aggregator {
         	} else if(what==Op.COUNT){
         		tup.setField(1, new IntField(vals[1]));
         	}
-    		tuples[i] = tup;
-    		i+=1;
+    		tuples.add(tup);
     		
     	}
     	
-    	class IntAggIter implements DbIterator {
-    		private boolean open;
-    		private TupleDesc desc;
-    		private HashMap<Field, Integer[]> groups;
-    		private int currentLoc;
-    		private Iterator<Field> keyIter;
-    		private Op op;
-    		
-    		IntAggIter(HashMap<Field, Integer[]> groups, Type gbFieldType, Op op) {
-    			this.groups = groups;
-    			open = false;
-    			currentLoc = 0;
-    			Type[] ty = new Type[2];
-    			ty[0] = gbFieldType;
-    			ty[1] = Type.INT_TYPE;
-    			desc = new TupleDesc(ty);
-    			keyIter = this.groups.keySet().iterator();
-    			this.op = op;
-    		}
-
-			@Override
-			public void open() throws DbException, TransactionAbortedException {
-				open = true;	
-			}
-
-			@Override
-			public boolean hasNext() throws DbException,
-					TransactionAbortedException {
-				if (!open) {
-					throw new TransactionAbortedException();
-				}
-				return keyIter.hasNext();
-			}
-
-			@Override
-			public Tuple next() throws DbException,
-					TransactionAbortedException, NoSuchElementException {
-				if (!open) {
-					throw new NoSuchElementException();
-				}
-				Tuple tup = new Tuple(desc);
-				Field nextKey = keyIter.next();
-				tup.setField(0, nextKey);
-				switch (op) {
-				case AVG:
-					tup.setField(1, new IntField(groups.get(nextKey)[0]/groups.get(nextKey)[1]));
-					break;
-				case COUNT:
-					tup.setField(1,  new IntField(groups.get(nextKey)[1]));
-					break;
-				default:
-					tup.setField(1, new IntField(groups.get(nextKey)[0]));
-				}
-				return tup;
-			}
-
-			@Override
-			public void rewind() throws DbException,
-					TransactionAbortedException {
-				if (!open) {
-					throw new TransactionAbortedException();
-				}
-				keyIter = this.groups.keySet().iterator();
-			}
-
-			@Override
-			public TupleDesc getTupleDesc() {
-				return desc;
-			}
-
-			@Override
-			public void close() {
-				open = false;
-			}
-    		
-    	}
+    	TupleIterator iterToRet = new TupleIterator(desc, tuples);
+    	return iterToRet;
     }
-    
-    
 }
