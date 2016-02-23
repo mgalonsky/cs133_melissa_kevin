@@ -126,12 +126,20 @@ public class IntegerAggregator implements Aggregator {
     	count+=1;
     }
     private void mergeSum(int val) {
-    	runningAggregate+=val;
-    	count+=1;
+    	if(runningAggregate==null){
+    		runningAggregate = val;
+    	} else{
+    		runningAggregate+=val;
+    		count+=1;
+    	}
     }
     private void mergeAvg(int val) {
-    	runningAggregate+=val;
-    	count+=1;
+    	if(runningAggregate==null){
+    		runningAggregate = val;
+    	} else{
+    		runningAggregate+=val;
+    		count+=1;
+    	}
     }
     private void mergeCount(int val) {
     	count+=1;
