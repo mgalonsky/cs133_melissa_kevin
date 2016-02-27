@@ -274,7 +274,7 @@ public class HeapPage implements Page {
      */
     public void insertTuple(Tuple t) throws DbException {
         for (int i = 0; i < numSlots; i++) {
-        	if (isSlotUsed(i)) {
+        	if (!isSlotUsed(i)) {
         		tuples[i] = t;
                 markSlotUsed(i, true);
                 RecordId newId = new RecordId(pid, i);
