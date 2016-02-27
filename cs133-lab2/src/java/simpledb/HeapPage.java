@@ -257,7 +257,7 @@ public class HeapPage implements Page {
     		if (isSlotUsed(i)) {
     			if (tuples[i].equals(t)) {
     				tuples[i] = null;
-    				header[i/8] = (byte) (header[i/8] ^ (1 << (i%8)));
+    				markSlotUsed(i, false);
     				return;
     			}
     		}
@@ -278,7 +278,7 @@ public class HeapPage implements Page {
         	i++;
         }
         tuples[i] = t;
-        header[i/8] = (byte) (header[i/8] ^ (1 << (i%8)));
+        markSlotUsed(i, true);
     }
     
     private boolean isDirty;
@@ -326,8 +326,13 @@ public class HeapPage implements Page {
      * Abstraction to fill or clear a slot on this page.
      */
     private void markSlotUsed(int i, boolean value) {
-        if(value) {
-        	
+    	int headerbit = i % 8;
+    	int headerbyte = (i-headerbit)/8;
+    	
+    	if(value) {
+        	this.header[headerbyte] = (byte) (this.header[headerbyte] | (1 << headerbit));
+        } else {
+        	this.header[headerbyte] = (byte) (this.header[headerbyte] & ~(1 << headerbit));
         }
     }
 
