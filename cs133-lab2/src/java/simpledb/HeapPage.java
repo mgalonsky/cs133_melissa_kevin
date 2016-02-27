@@ -273,14 +273,16 @@ public class HeapPage implements Page {
      * @param t The tuple to add.
      */
     public void insertTuple(Tuple t) throws DbException {
-        int i = 0;
-        while(isSlotUsed(i)) {
-        	i++;
+        for (int i = 0; i < numSlots; i++) {
+        	if (isSlotUsed(i)) {
+        		tuples[i] = t;
+                markSlotUsed(i, true);
+                RecordId newId = new RecordId(pid, i);
+                t.setRecordId(newId);
+                return;
+        	}
         }
-        tuples[i] = t;
-        markSlotUsed(i, true);
-        RecordId newId = new RecordId(pid, i);
-        t.setRecordId(newId);
+        throw new DbException(null);
     }
     
     private boolean isDirty;
