@@ -292,7 +292,12 @@ public class HeapPage implements Page {
      */
     public void markDirty(boolean dirty, TransactionId tid) {
     	isDirty = dirty;
-    	dirtyTransaction = tid;
+    	if (dirty) {
+    		dirtyTransaction = tid;
+    	} else {
+    		dirtyTransaction = null;
+    	}
+    	
     }
 
     /**
