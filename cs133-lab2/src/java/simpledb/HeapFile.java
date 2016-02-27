@@ -145,6 +145,7 @@ public class HeapFile implements DbFile {
 			if(pg.getNumEmptySlots()>0){
 	    		pg.insertTuple(t);
 	    		pg.markDirty(true, tid);
+	    		writePage(pg);
 	    		affectedPages.add(pg);
 	    		return affectedPages;
 			}
@@ -155,6 +156,7 @@ public class HeapFile implements DbFile {
     	HeapPage newPage = new HeapPage(newPid, HeapPage.createEmptyPageData());
     	newPage.insertTuple(t);
     	newPage.markDirty(true, tid);
+    	writePage(newPage);
     	affectedPages.add(newPage);
     	return affectedPages;
     	
