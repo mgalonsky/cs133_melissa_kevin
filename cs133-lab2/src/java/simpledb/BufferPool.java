@@ -143,28 +143,29 @@ public class BufferPool {
      * @param t the tuple to add
      */
     public void insertTuple(TransactionId tid, int tableId, Tuple t)
-        throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
-    }
+            throws DbException, IOException, TransactionAbortedException {
+            DbFile fileToModify = Database.getCatalog().getDatabaseFile(tableId);
+            fileToModify.insertTuple(tid, t);
+        }
 
-    /**
-     * Remove the specified tuple from the buffer pool.
-     * Will acquire a write lock on the page the tuple is removed from and any
-     * other pages that are updated. May block if the lock(s) cannot be acquired.
-     *
-     * Marks any pages that were dirtied by the operation as dirty by calling
-     * their markDirty bit, and updates cached versions of any pages that have 
-     * been dirtied so that future requests see up-to-date pages. 
-     *
-     * @param tid the transaction deleting the tuple.
-     * @param t the tuple to delete
-     */
-    public  void deleteTuple(TransactionId tid, Tuple t)
-        throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
-    }
+        /**
+         * Remove the specified tuple from the buffer pool.
+         * Will acquire a write lock on the page the tuple is removed from and any
+         * other pages that are updated. May block if the lock(s) cannot be acquired.
+         *
+         * Marks any pages that were dirtied by the operation as dirty by calling
+         * their markDirty bit, and updates cached versions of any pages that have 
+         * been dirtied so that future requests see up-to-date pages. 
+         *
+         * @param tid the transaction deleting the tuple.
+         * @param t the tuple to delete
+         */
+        public void deleteTuple(TransactionId tid, Tuple t)
+            throws DbException, IOException, TransactionAbortedException {
+        	HeapPage pageToDeleteFrom = (HeapPage) getPage(tid, t.getRecordId().getPageId(), Permissions.READ_WRITE);
+            pageToDeleteFrom.deleteTuple(t);
+            pageToDeleteFrom.markDirty(true, tid);
+        }
 
     /**
      * Flush all dirty pages to disk.
