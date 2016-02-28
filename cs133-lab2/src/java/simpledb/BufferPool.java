@@ -2,6 +2,7 @@ package simpledb;
 
 import java.io.*;
 
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -173,8 +174,10 @@ public class BufferPool {
      *     break simpledb if running in NO STEAL mode.
      */
     public synchronized void flushAllPages() throws IOException {
-        // some code goes here
-        // not necessary for lab1
+        Iterator<PageId> iter = pages.keySet().iterator();
+        while(iter.hasNext()){
+        	flushPage(iter.next());
+        }
 
     }
 
@@ -193,8 +196,7 @@ public class BufferPool {
      * @param pid an ID indicating the page to flush
      */
     private synchronized  void flushPage(PageId pid) throws IOException {
-        // some code goes here
-        // not necessary for lab1
+        Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(pages.get(pid));
     }
 
     /** Write all pages of the specified transaction to disk.
