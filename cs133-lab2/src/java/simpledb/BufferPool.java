@@ -67,7 +67,7 @@ public class BufferPool {
             p = pages.get(pid);
             if(p == null) {
                 if(pages.size() >= numPages) {
-                    throw new DbException("Out of buffer pages");
+                    evictPage();
                 }
                 
                 try {
