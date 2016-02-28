@@ -211,8 +211,15 @@ public class BufferPool {
      * Flushes the page to disk to ensure dirty pages are updated on disk.
      */
     private synchronized  void evictPage() throws DbException {
-        // some code goes here
-        // not necessary for lab1
+    	Iterator<PageId> iter = pages.keySet().iterator();
+    	PageId next = iter.next();
+    	try {
+			flushPage(next);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	pages.remove(next);
     }
 
 }
