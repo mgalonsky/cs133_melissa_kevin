@@ -10,6 +10,10 @@ public class Delete extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    
+    private TransactionId tid;
+    private DbIterator child;
+    private boolean hasBeenDeleated;
     /**
      * Constructor specifying the transaction that this delete belongs to as
      * well as the child to read from.
@@ -20,26 +24,32 @@ public class Delete extends Operator {
      *            The child operator from which to read tuples for deletion
      */
     public Delete(TransactionId t, DbIterator child) {
-        // some code goes here
+        tid = t;
+        this.child = child;
+        hasBeenDeleated = false;
     }
 
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        return null;
+    	Type[] fields = new Type[1];
+        fields[0] = Type.INT_TYPE;
+        TupleDesc td = new TupleDesc(fields);
+        return td;
     }
 
     public void open() throws DbException, TransactionAbortedException {
-        // some code goes here
+    	super.open();
+        this.child.open();
     }
 
     public void close() {
-        // some code goes here
+        super.close();
+        child.close();
     }
     /**
      * You can just close and then open the child
      */
     public void rewind() throws DbException, TransactionAbortedException {
-        // some code goes here
+        child.rewind();
     }
 
     /**
@@ -54,19 +64,40 @@ public class Delete extends Operator {
      * @see BufferPool#deleteTuple
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+    	if(!hasBeenDeleated){
+    		this.hasBeenDeleated = true;
+	    	int numDeletes = 0;
+	        while(this.child.hasNext()){
+	        	Tuple t = this.child.next();
+	        	try {
+					Database.getBufferPool().deleteTuple(this.tid, t);
+					numDeletes+=1;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+	        Type[] fields = new Type[1];
+	        fields[0] = Type.INT_TYPE;
+	        TupleDesc td = new TupleDesc(fields);
+	        Tuple newTuple = new Tuple(td);
+	        newTuple.setField(0, new IntField(numDeletes));
+	        return newTuple;
+    	} else{
+    		return null;
+    	}
     }
 
     @Override
     public DbIterator[] getChildren() {
-        // some code goes here
-        return null;
+    	DbIterator[] children = new DbIterator[1];
+        children[0] = this.child;
+        return children;
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
-        // some code goes here
+    	this.child = children[0];
     }
 
 }
